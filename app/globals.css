@@ -10,6 +10,37 @@
   --color-foreground: var(--foreground);
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+  --font-bubblegum: var(--font-bubblegum);
+  --font-varela: var(--font-varela);
+}
+
+.bubble-shadow {
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.1), inset 0 -4px 0 rgba(0, 0, 0, 0.1);
+}
+
+.bubble-shadow-pink {
+  box-shadow: 0 8px 0 #f472b6, inset 0 -4px 0 rgba(0, 0, 0, 0.1);
+}
+
+.bubble-shadow-purple {
+  box-shadow: 0 8px 0 #a855f7, inset 0 -4px 0 rgba(0, 0, 0, 0.1);
+}
+
+.bubble-shadow-yellow {
+  box-shadow: 0 8px 0 #eab308, inset 0 -4px 0 rgba(0, 0, 0, 0.1);
+}
+
+.sparkle {
+  position: absolute;
+  pointer-events: none;
+  background: white;
+  border-radius: 50%;
+  animation: sparkle-anim 1.5s ease-in-out infinite;
+}
+
+@keyframes sparkle-anim {
+  0%, 100% { transform: scale(0); opacity: 0; }
+  50% { transform: scale(1); opacity: 1; }
 }
 
 @media (prefers-color-scheme: dark) {

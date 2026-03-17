@@ -1,0 +1,164 @@
+'use client';
+
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+
+export interface Reward {
+  id: string;
+  name: string;
+  price: number;
+  icon: string;
+}
+
+export interface Purchase {
+  id: string;
+  rewardId: string;
+  rewardName: string;
+  rewardIcon: string;
+  timestamp: number;
+  status: 'pending' | 'done';
+}
+
+export interface ParentSettings {
+  operators: ('+' | '-')[];
+  minNumber: number;
+  maxNumber: number;
+}
+
+interface GameContextType {
+  coins: number;
+  rewards: Reward[];
+  purchases: Purchase[];
+  settings: ParentSettings;
+  hearts: number;
+  addCoins: (amount: number) => void;
+  removeCoins: (amount: number) => void;
+  addReward: (reward: Omit<Reward, 'id'>) => void;
+  deleteReward: (id: string) => void;
+  makePurchase: (reward: Reward) => void;
+  updateSettings: (settings: ParentSettings) => void;
+  setHearts: (hearts: number) => void;
+  togglePurchaseStatus: (id: string) => void;
+}
+
+const DEFAULT_SETTINGS: ParentSettings = {
+  operators: ['+'],
+  minNumber: 1,
+  maxNumber: 100,
+};
+
+const DEFAULT_REWARDS: Reward[] = [
+  { id: '1', name: 'גלידה מתוקה', price: 10, icon: '🍦' },
+  { id: '2', name: 'כדור פלא', price: 15, icon: '⚽' },
+  { id: '3', name: 'דובי חמוד', price: 25, icon: '🧸' },
+  { id: '4', name: 'סוכריה על מקל', price: 5, icon: '🍭' },
+  { id: '5', name: 'קופסת הפתעה', price: 50, icon: '🎁' },
+  { id: '6', name: 'חד קרן קסום', price: 100, icon: '🦄' },
+];
+
+const GameContext = createContext<GameContextType | undefined>(undefined);
+
+export function GameProvider({ children }: { children: ReactNode }) {
+  const [coins, setCoins] = useState(0);
+  const [rewards, setRewards] = useState<Reward[]>(DEFAULT_REWARDS);
+  const [purchases, setPurchases] = useState<Purchase[]>([]);
+  const [settings, setSettings] = useState<ParentSettings>(DEFAULT_SETTINGS);
+  const [hearts, setHeartsState] = useState(3);
+  const [isInitialized, setIsInitialized] = useState(false);
+
+  // Load from localStorage on mount
+  useEffect(() => {
+    const savedCoins = localStorage.getItem('math-game-coins');
+    const savedRewards = localStorage.getItem('math-game-rewards');
+    const savedPurchases = localStorage.getItem('math-game-purchases');
+    const savedSettings = localStorage.getItem('math-game-settings');
+    const savedHearts = localStorage.getItem('math-game-hearts');
+
+    if (savedCoins) setCoins(Number(savedCoins));
+    if (savedRewards) setRewards(JSON.parse(savedRewards));
+    if (savedPurchases) setPurchases(JSON.parse(savedPurchases));
+    if (savedSettings) setSettings(JSON.parse(savedSettings));
+    if (savedHearts) setHeartsState(Number(savedHearts));
+    
+    setIsInitialized(true);
+  }, []);
+
+  // Save to localStorage on change
+  useEffect(() => {
+    if (isInitialized) {
+      localStorage.setItem('math-game-coins', coins.toString());
+      localStorage.setItem('math-game-rewards', JSON.stringify(rewards));
+      localStorage.setItem('math-game-purchases', JSON.stringify(purchases));
+      localStorage.setItem('math-game-settings', JSON.stringify(settings));
+      localStorage.setItem('math-game-hearts', hearts.toString());
+    }
+  }, [coins, rewards, purchases, settings, hearts, isInitialized]);
+
+  const addCoins = (amount: number) => setCoins(prev => prev + amount);
+  const removeCoins = (amount: number) => setCoins(prev => prev - amount);
+
+  const addReward = (reward: Omit<Reward, 'id'>) => {
+    const newReward = { ...reward, id: Date.now().toString() };
+    setRewards(prev => [...prev, newReward]);
+  };
+
+  const deleteReward = (id: string) => {
+    setRewards(prev => prev.filter(r => r.id !== id));
+  };
+
+  const makePurchase = (reward: Reward) => {
+    if (coins >= reward.price) {
+      setCoins(prev => prev - reward.price);
+      const newPurchase: Purchase = {
+        id: Date.now().toString(),
+        rewardId: reward.id,
+        rewardName: reward.name,
+        rewardIcon: reward.icon,
+        timestamp: Date.now(),
+        status: 'pending',
+      };
+      setPurchases(prev => [...prev, newPurchase]);
+    }
+  };
+
+  const updateSettings = (newSettings: ParentSettings) => {
+    setSettings(newSettings);
+  };
+
+  const setHearts = (newHearts: number) => {
+    setHeartsState(newHearts);
+  };
+
+  const togglePurchaseStatus = (id: string) => {
+    setPurchases(prev => prev.map(p => 
+      p.id === id ? { ...p, status: p.status === 'pending' ? 'done' : 'pending' } : p
+    ));
+  };
+
+  return (
+    <GameContext.Provider value={{ 
+      coins, 
+      rewards, 
+      purchases, 
+      settings,
+      hearts,
+      addCoins, 
+      removeCoins, 
+      addReward, 
+      deleteReward, 
+      makePurchase,
+      updateSettings,
+      setHearts,
+      togglePurchaseStatus
+    }}>
+      {children}
+    </GameContext.Provider>
+  );
+}
+
+export function useGame() {
+  const context = useContext(GameContext);
+  if (context === undefined) {
+    throw new Error('useGame must be used within a GameProvider');
+  }
+  return context;
+}
