@@ -59,7 +59,7 @@ const BubbleBlock = ({ children, color = 'purple', delay = 0, id, shake }: { chi
 };
 
 export default function MathGame() {
-  const { coins, rewards, purchases, settings, hearts, addCoins, removeCoins, makePurchase, setHearts } = useGame();
+  const { coins, rewards, purchases, settings, hearts, password, childName, addCoins, removeCoins, makePurchase, setHearts, setPassword, setChildName } = useGame();
   const [currentExercise, setCurrentExercise] = useState<Exercise | null>(null);
   const [options, setOptions] = useState<number[]>([]);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | 'gameover', message: string } | null>(null);
@@ -67,6 +67,11 @@ export default function MathGame() {
   const [showModal, setShowModal] = useState(false);
   const [flyingCoins, setFlyingCoins] = useState<{ id: number, start: { x: number, y: number }, amount: number }[]>([]);
   
+  // Onboarding/Password Setup
+  const [setupPassword, setSetupPassword] = useState('');
+  const [setupName, setSetupName] = useState('');
+  const [setupError, setSetupError] = useState('');
+
   // Gamification states
   const [streak, setStreak] = useState(0);
   const [combo, setCombo] = useState(0);
@@ -151,8 +156,75 @@ export default function MathGame() {
   }, [settings]);
 
   useEffect(() => {
-    generateExercise();
-  }, [generateExercise]);
+    if (password) {
+      generateExercise();
+    }
+  }, [generateExercise, password]);
+
+  const handleSetupPassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!setupName.trim()) {
+      setSetupError('אנא הקישו את שם הילדה');
+      return;
+    }
+    if (setupPassword.length === 4 && /^\d+$/.test(setupPassword)) {
+      setChildName(setupName.trim());
+      setPassword(setupPassword);
+      setSetupError('');
+    } else {
+      setSetupError('אנא הקישו 4 ספרות בדיוק');
+    }
+  };
+
+  if (!password || !childName) {
+    return (
+      <main className="min-h-screen bg-purple-50 flex items-center justify-center p-4 font-varela" dir="rtl">
+        <motion.div 
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="bg-white p-8 rounded-[3rem] shadow-2xl border-8 border-pink-200 max-w-md w-full text-center"
+        >
+          <div className="text-8xl mb-6">👋✨</div>
+          <h1 className="text-4xl font-black text-purple-600 mb-4 font-bubblegum">ברוכים הבאים!</h1>
+          <p className="text-xl text-purple-400 mb-8 font-bold">הורים, בואו נגדיר את החשבון שלכם:</p>
+          <form onSubmit={handleSetupPassword} className="flex flex-col gap-6">
+            <div className="space-y-4">
+              <div className="text-right">
+                <label className="block text-purple-600 font-bold mb-2 px-2">שם הילדה:</label>
+                <input
+                  type="text"
+                  value={setupName}
+                  onChange={(e) => setSetupName(e.target.value)}
+                  placeholder="למשל: נועה"
+                  className="w-full p-4 rounded-2xl border-4 border-purple-100 focus:border-purple-400 outline-none text-center text-2xl"
+                />
+              </div>
+              <div className="text-right">
+                <label className="block text-purple-600 font-bold mb-2 px-2">קוד סודי להורים (4 ספרות):</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  maxLength={4}
+                  value={setupPassword}
+                  onChange={(e) => setSetupPassword(e.target.value)}
+                  placeholder="____"
+                  className="w-full p-4 rounded-2xl border-4 border-purple-100 focus:border-purple-400 outline-none text-center text-3xl font-bubblegum tracking-[0.5rem]"
+                />
+              </div>
+              {setupError && <p className="text-red-500 mt-2 font-bold">{setupError}</p>}
+            </div>
+            <button
+              type="submit"
+              className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-5 rounded-2xl transition-all shadow-[0_8px_0_#7e22ce] active:translate-y-2 active:shadow-none text-2xl mt-4"
+            >
+              בואו נתחיל!
+            </button>
+          </form>
+        </motion.div>
+      </main>
+    );
+  }
 
   const handleAnswer = (selected: number) => {
     if (!currentExercise || feedback?.type === 'gameover') return;
@@ -295,7 +367,12 @@ export default function MathGame() {
       <header className="w-full max-w-4xl bg-white rounded-3xl shadow-lg p-6 flex flex-wrap justify-between items-center border-4 border-pink-200 gap-4">
         <div className="flex items-center gap-4">
           <Link href="/">
-            <h1 className="text-2xl md:text-3xl font-bold text-purple-600 font-bubblegum">משחק החשבון שלי</h1>
+            <div className="flex items-center gap-2">
+              <span className="text-2xl">👑</span>
+              <h1 className="text-2xl md:text-3xl font-bold text-purple-600 font-bubblegum">
+                <span className="text-pink-500">{childName}</span> האלופה!
+              </h1>
+            </div>
           </Link>
           
           {/* Hearts Display */}

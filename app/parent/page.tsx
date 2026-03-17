@@ -4,11 +4,11 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useGame } from '@/context/GameContext';
 import Link from 'next/link';
-import { ArrowRight, Plus, Trash2, History, Coins, Package, Settings as SettingsIcon, Check } from 'lucide-react';
+import { ArrowRight, Plus, Trash2, History, Coins, Package, Settings as SettingsIcon, Check, Shield } from 'lucide-react';
 
 export default function ParentDashboard() {
-  const { coins, rewards, purchases, settings, addReward, deleteReward, updateSettings, togglePurchaseStatus } = useGame();
-  const [password, setPassword] = useState('');
+  const { coins, rewards, purchases, settings, password, childName, addReward, deleteReward, updateSettings, togglePurchaseStatus, setPassword, setChildName } = useGame();
+  const [passwordInput, setPasswordInput] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState('');
   
@@ -18,16 +18,34 @@ export default function ParentDashboard() {
 
   // Local settings state
   const [localSettings, setLocalSettings] = useState(settings);
+  const [localChildName, setLocalChildName] = useState(childName || '');
+
+  // Password update state
+  const [newPassword, setNewPassword] = useState('');
+  const [passwordUpdateMessage, setPasswordUpdateMessage] = useState('');
 
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
-    if (password === '1234') {
+    if (passwordInput === password) {
       setIsAuthenticated(true);
       setError('');
       setLocalSettings(settings); // Sync with context on login
+      setLocalChildName(childName || '');
     } else {
       setError('סיסמה שגויה! נסו שוב');
-      setPassword('');
+      setPasswordInput('');
+    }
+  };
+
+  const handleUpdatePassword = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (newPassword.length === 4 && /^\d+$/.test(newPassword)) {
+      setPassword(newPassword);
+      setNewPassword('');
+      setPasswordUpdateMessage('הסיסמה עודכנה בהצלחה!');
+      setTimeout(() => setPasswordUpdateMessage(''), 3000);
+    } else {
+      setPasswordUpdateMessage('הסיסמה חייבת להכיל 4 ספרות');
     }
   };
 
@@ -36,7 +54,12 @@ export default function ParentDashboard() {
       alert('חובה לבחור לפחות פעולת חשבון אחת!');
       return;
     }
+    if (!localChildName.trim()) {
+      alert('חובה להזין את שם הילדה!');
+      return;
+    }
     updateSettings(localSettings);
+    setChildName(localChildName.trim());
     alert('ההגדרות נשמרו בהצלחה!');
   };
 
@@ -77,17 +100,19 @@ export default function ParentDashboard() {
             <div>
               <input
                 type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="הקישו סיסמה (1234)"
-                className="w-full p-4 rounded-xl border-2 border-purple-100 focus:border-purple-400 outline-none text-center text-xl"
+                inputMode="numeric"
+                maxLength={4}
+                value={passwordInput}
+                onChange={(e) => setPasswordInput(e.target.value)}
+                placeholder="____"
+                className="w-full p-4 rounded-xl border-2 border-purple-100 focus:border-purple-400 outline-none text-center text-3xl font-bubblegum tracking-[0.5rem]"
                 autoFocus
               />
               {error && <p className="text-red-500 mt-2 font-bold">{error}</p>}
             </div>
             <button
               type="submit"
-              className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-4 rounded-xl transition-all shadow-lg active:scale-95"
+              className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-4 rounded-xl transition-all shadow-lg active:scale-95 text-xl"
             >
               כניסה לדאשבורד
             </button>
@@ -128,7 +153,19 @@ export default function ParentDashboard() {
               </div>
               
               <div className="space-y-6">
-                {/* Operators */}
+              {/* Child's Name */}
+              <div>
+                <label className="block text-gray-700 font-bold mb-3">שם הילדה:</label>
+                <input
+                  type="text"
+                  value={localChildName}
+                  onChange={(e) => setLocalChildName(e.target.value)}
+                  placeholder="שם הילדה"
+                  className="w-full p-4 rounded-xl border-2 border-yellow-50 focus:border-yellow-300 outline-none font-bold"
+                />
+              </div>
+
+              {/* Operators */}
                 <div>
                   <label className="block text-gray-700 font-bold mb-3">פעולות חשבון:</label>
                   <div className="flex gap-4">
@@ -181,6 +218,39 @@ export default function ParentDashboard() {
                   שמור הגדרות
                 </button>
               </div>
+            </section>
+
+            {/* Security Section */}
+            <section className="bg-white p-8 rounded-[2rem] shadow-xl border-4 border-gray-100">
+              <div className="flex items-center gap-2 mb-6 text-gray-600">
+                <Shield size={28} />
+                <h2 className="text-2xl font-bold">אבטחה</h2>
+              </div>
+              <form onSubmit={handleUpdatePassword} className="space-y-4">
+                <div>
+                  <label className="block text-gray-700 font-bold mb-2">שינוי קוד סודי:</label>
+                  <input
+                    type="password"
+                    inputMode="numeric"
+                    maxLength={4}
+                    value={newPassword}
+                    onChange={(e) => setNewPassword(e.target.value)}
+                    placeholder="קוד חדש (4 ספרות)"
+                    className="w-full p-4 rounded-xl border-2 border-gray-50 focus:border-gray-300 outline-none text-center text-2xl font-bubblegum tracking-[0.5rem]"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="w-full bg-gray-500 hover:bg-gray-600 text-white font-bold py-4 rounded-2xl transition-all shadow-md active:scale-95 text-xl"
+                >
+                  עדכן קוד
+                </button>
+                {passwordUpdateMessage && (
+                  <p className={`text-center font-bold ${passwordUpdateMessage.includes('בהצלחה') ? 'text-green-500' : 'text-red-500'}`}>
+                    {passwordUpdateMessage}
+                  </p>
+                )}
+              </form>
             </section>
 
             {/* Purchase History */}

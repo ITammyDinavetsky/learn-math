@@ -30,6 +30,8 @@ interface GameContextType {
   purchases: Purchase[];
   settings: ParentSettings;
   hearts: number;
+  password: string | null;
+  childName: string | null;
   addCoins: (amount: number) => void;
   removeCoins: (amount: number) => void;
   addReward: (reward: Omit<Reward, 'id'>) => void;
@@ -38,6 +40,8 @@ interface GameContextType {
   updateSettings: (settings: ParentSettings) => void;
   setHearts: (hearts: number) => void;
   togglePurchaseStatus: (id: string) => void;
+  setPassword: (password: string) => void;
+  setChildName: (name: string) => void;
 }
 
 const DEFAULT_SETTINGS: ParentSettings = {
@@ -63,6 +67,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [settings, setSettings] = useState<ParentSettings>(DEFAULT_SETTINGS);
   const [hearts, setHeartsState] = useState(3);
+  const [password, setPasswordState] = useState<string | null>(null);
+  const [childName, setChildNameState] = useState<string | null>(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Load from localStorage on mount
@@ -72,12 +78,16 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const savedPurchases = localStorage.getItem('math-game-purchases');
     const savedSettings = localStorage.getItem('math-game-settings');
     const savedHearts = localStorage.getItem('math-game-hearts');
+    const savedPassword = localStorage.getItem('math-game-password');
+    const savedChildName = localStorage.getItem('math-game-child-name');
 
     if (savedCoins) setCoins(Number(savedCoins));
     if (savedRewards) setRewards(JSON.parse(savedRewards));
     if (savedPurchases) setPurchases(JSON.parse(savedPurchases));
     if (savedSettings) setSettings(JSON.parse(savedSettings));
     if (savedHearts) setHeartsState(Number(savedHearts));
+    if (savedPassword) setPasswordState(savedPassword);
+    if (savedChildName) setChildNameState(savedChildName);
     
     setIsInitialized(true);
   }, []);
@@ -90,8 +100,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('math-game-purchases', JSON.stringify(purchases));
       localStorage.setItem('math-game-settings', JSON.stringify(settings));
       localStorage.setItem('math-game-hearts', hearts.toString());
+      if (password) localStorage.setItem('math-game-password', password);
+      if (childName) localStorage.setItem('math-game-child-name', childName);
     }
-  }, [coins, rewards, purchases, settings, hearts, isInitialized]);
+  }, [coins, rewards, purchases, settings, hearts, password, childName, isInitialized]);
 
   const addCoins = (amount: number) => setCoins(prev => prev + amount);
   const removeCoins = (amount: number) => setCoins(prev => prev - amount);
@@ -134,6 +146,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
     ));
   };
 
+  const setPassword = (newPassword: string) => {
+    setPasswordState(newPassword);
+  };
+
+  const setChildName = (newName: string) => {
+    setChildNameState(newName);
+  };
+
   return (
     <GameContext.Provider value={{ 
       coins, 
@@ -141,6 +161,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       purchases, 
       settings,
       hearts,
+      password,
+      childName,
       addCoins, 
       removeCoins, 
       addReward, 
@@ -148,7 +170,9 @@ export function GameProvider({ children }: { children: ReactNode }) {
       makePurchase,
       updateSettings,
       setHearts,
-      togglePurchaseStatus
+      togglePurchaseStatus,
+      setPassword,
+      setChildName
     }}>
       {children}
     </GameContext.Provider>
