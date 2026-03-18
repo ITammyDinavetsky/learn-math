@@ -59,7 +59,7 @@ export default function ParentDashboard() {
       return;
     }
     if (!localChildName.trim()) {
-      alert('חובה להזין את שם הילדה!');
+      alert('חובה להזין את שם הילד/ה!');
       return;
     }
     updateSettings(localSettings);
@@ -226,7 +226,7 @@ export default function ParentDashboard() {
               <div className="space-y-6">
               {/* Child's Name */}
               <div>
-                <label className="block text-black font-black mb-3">שם הילדה:</label>
+                <label className="block text-black font-black mb-3">שם הילד/ה:</label>
                 <input
                   type="text"
                   value={localChildName}

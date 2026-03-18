@@ -197,7 +197,7 @@ export default function MathGame() {
   const handleSetupPassword = (e: React.FormEvent) => {
     e.preventDefault();
     if (!setupName.trim()) {
-      setSetupError('אנא הקישו את שם הילדה');
+      setSetupError('אנא הקישו את שם הילד/ה');
       return;
     }
     if (setupPassword.length === 4 && /^\d+$/.test(setupPassword)) {
@@ -223,7 +223,7 @@ export default function MathGame() {
           <form onSubmit={handleSetupPassword} className="flex flex-col gap-6">
             <div className="space-y-4">
               <div className="text-right">
-                <label className="block text-purple-900 font-black mb-2 px-2">שם הילדה:</label>
+                <label className="block text-purple-900 font-black mb-2 px-2">שם הילד/ה:</label>
                 <input
                   type="text"
                   value={setupName}
@@ -537,7 +537,7 @@ export default function MathGame() {
             <div className="flex items-center gap-3">
               <span className="text-4xl">👑</span>
               <h1 className="text-3xl md:text-4xl font-bold text-purple-600 font-bubblegum">
-                <span className="text-pink-500">{childName}</span> האלופה!
+                <span className="text-pink-500">{childName}</span> האלופ/ה!
               </h1>
             </div>
           </Link>
