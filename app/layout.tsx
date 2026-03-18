@@ -30,6 +30,7 @@ export const metadata: Metadata = {
 };
 
 import { GameProvider } from "@/context/GameContext";
+import { Analytics } from "@vercel/analytics/react";
 
 export default function RootLayout({
   children,
@@ -43,6 +44,7 @@ export default function RootLayout({
       >
         <GameProvider>
           {children}
+          <Analytics />
         </GameProvider>
       </body>
     </html>
