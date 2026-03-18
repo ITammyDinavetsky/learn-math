@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence, useAnimation } from 'framer-motion';
-import { Sparkles, Settings, Lock, Heart, Flame, Gift, CheckCircle2 } from 'lucide-react';
+import { Sparkles, Settings, Lock, Heart, Gift, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { useGame } from '@/context/GameContext';
 import confetti from 'canvas-confetti';
@@ -264,7 +264,6 @@ export default function MathGame() {
 
     if (selected === currentExercise.result) {
       const newStreak = streak + 1;
-      const isStreak = newStreak >= 5;
       const coinAmount = 5; // Base amount for correct answer
       
       addCoins(coinAmount);
@@ -557,21 +556,6 @@ export default function MathGame() {
         </div>
 
         <div className="flex items-center gap-4">
-          {/* Streak Display */}
-          <AnimatePresence>
-            {streak >= 3 && (
-              <motion.div
-                initial={{ scale: 0 }}
-                animate={{ scale: 1.1 }}
-                exit={{ scale: 0 }}
-                className="flex items-center gap-2 bg-orange-100 px-4 py-2 rounded-full border-2 border-orange-400"
-              >
-                <Flame className={`w-8 h-8 ${streak >= 5 ? 'text-orange-600 animate-pulse' : 'text-orange-500'}`} />
-                <span className="font-bold text-2xl text-orange-700">{streak}</span>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
           {/* Daily Goal Display */}
           <div className="flex items-center gap-3 bg-blue-50 px-4 py-2 rounded-full border-2 border-blue-200 group relative">
             <CheckCircle2 className="w-8 h-8 text-blue-500" />
