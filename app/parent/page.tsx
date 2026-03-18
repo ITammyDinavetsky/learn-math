@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { ArrowRight, Plus, Trash2, History, Coins, Package, Settings as SettingsIcon, Check, Shield } from 'lucide-react';
 
 export default function ParentDashboard() {
-  const { coins, rewards, purchases, settings, password, childName, addReward, updateReward, deleteReward, updateSettings, togglePurchaseStatus, setPassword, setChildName, addCoins, removeCoins } = useGame();
+  const { coins, rewards, purchases, settings, password, childName, dailyProgress, addReward, updateReward, deleteReward, updateSettings, togglePurchaseStatus, setPassword, setChildName, addCoins, removeCoins } = useGame();
   const [passwordInput, setPasswordInput] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState('');
@@ -112,6 +112,22 @@ export default function ParentDashboard() {
     setCoinAdjustmentAmount('');
   };
 
+  // Prepare graph data
+  const getLast7Days = () => {
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const dateStr = d.toISOString().split('T')[0];
+      const label = d.toLocaleDateString('he-IL', { weekday: 'short', day: 'numeric' });
+      days.push({ date: dateStr, label, count: dailyProgress[dateStr] || 0 });
+    }
+    return days;
+  };
+
+  const graphData = getLast7Days();
+  const maxCount = Math.max(...graphData.map(d => d.count), 5); // Ensure at least a height of 5 for scale
+
   if (!isAuthenticated) {
     return (
       <main className="min-h-screen bg-purple-50 flex items-center justify-center p-4 font-varela" dir="rtl">
@@ -167,6 +183,35 @@ export default function ParentDashboard() {
             <span className="text-xl font-bold text-yellow-700">{coins} מטבעות</span>
           </div>
         </header>
+
+        {/* Progress Tracker Section */}
+        <section className="bg-white p-8 rounded-[2rem] shadow-xl border-4 border-blue-100 mb-8">
+          <div className="flex items-center gap-2 mb-8 text-blue-600">
+            <History size={28} />
+            <h2 className="text-2xl font-bold">ביצועים בשבוע האחרון</h2>
+          </div>
+          
+          <div className="flex items-end justify-between gap-2 h-48 px-2 md:px-8">
+            {graphData.map((day) => (
+              <div key={day.date} className="flex flex-col items-center flex-1 gap-2 group">
+                <div className="relative w-full flex flex-col items-center">
+                  {/* Tooltip or count on top */}
+                  <div className="text-sm font-black text-blue-600 mb-1">
+                    {day.count > 0 ? day.count : ''}
+                  </div>
+                  <motion.div
+                    initial={{ height: 0 }}
+                    animate={{ height: `${(day.count / maxCount) * 100}%` }}
+                    className="w-8 md:w-12 bg-gradient-to-t from-blue-400 to-blue-300 rounded-t-xl min-h-[4px] shadow-[0_4px_0_#3b82f6]"
+                  />
+                </div>
+                <span className="text-[10px] md:text-xs font-bold text-gray-400 text-center leading-tight h-8 flex items-center">
+                  {day.label}
+                </span>
+              </div>
+            ))}
+          </div>
+        </section>
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start">
           {/* Right Column: Settings and History */}

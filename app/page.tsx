@@ -59,7 +59,7 @@ const BubbleBlock = ({ children, color = 'purple', delay = 0, id, shake }: { chi
 };
 
 export default function MathGame() {
-  const { coins, rewards, purchases, settings, hearts, password, childName, themeColor, addCoins, removeCoins, makePurchase, setHearts, setPassword, setChildName, setThemeColor } = useGame();
+  const { coins, rewards, purchases, settings, hearts, password, childName, themeColor, addCoins, removeCoins, makePurchase, setHearts, setPassword, setChildName, setThemeColor, recordCorrectAnswer } = useGame();
   const [currentExercise, setCurrentExercise] = useState<Exercise | null>(null);
   const [options, setOptions] = useState<number[]>([]);
   const [feedback, setFeedback] = useState<{ type: 'success' | 'error' | 'gameover', message: string } | null>(null);
@@ -269,6 +269,7 @@ export default function MathGame() {
       addCoins(coinAmount);
       setStreak(newStreak);
       setSolvedToday(prev => prev + 1);
+      recordCorrectAnswer();
       
       // Combo logic
       const nextCombo = combo + 1;

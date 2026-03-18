@@ -26,6 +26,10 @@ export interface ParentSettings {
 
 export type ThemeColor = 'white' | 'pink' | 'blue' | 'yellow';
 
+export interface DailyProgress {
+  [date: string]: number;
+}
+
 interface GameContextType {
   coins: number;
   rewards: Reward[];
@@ -35,6 +39,7 @@ interface GameContextType {
   password: string | null;
   childName: string | null;
   themeColor: ThemeColor;
+  dailyProgress: DailyProgress;
   addCoins: (amount: number) => void;
   removeCoins: (amount: number) => void;
   addReward: (reward: Omit<Reward, 'id'>) => void;
@@ -47,6 +52,7 @@ interface GameContextType {
   setPassword: (password: string) => void;
   setChildName: (name: string) => void;
   setThemeColor: (color: ThemeColor) => void;
+  recordCorrectAnswer: () => void;
 }
 
 const DEFAULT_SETTINGS: ParentSettings = {
@@ -75,6 +81,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [password, setPasswordState] = useState<string | null>(null);
   const [childName, setChildNameState] = useState<string | null>(null);
   const [themeColor, setThemeColorState] = useState<ThemeColor>('white');
+  const [dailyProgress, setDailyProgress] = useState<DailyProgress>({});
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Load from localStorage on mount
@@ -87,6 +94,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const savedPassword = localStorage.getItem('math-game-password');
     const savedChildName = localStorage.getItem('math-game-child-name');
     const savedTheme = localStorage.getItem('math-game-theme');
+    const savedProgress = localStorage.getItem('math_progress');
 
     if (savedCoins) setCoins(Number(savedCoins));
     if (savedRewards) setRewards(JSON.parse(savedRewards));
@@ -96,6 +104,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (savedPassword) setPasswordState(savedPassword);
     if (savedChildName) setChildNameState(savedChildName);
     if (savedTheme) setThemeColorState(savedTheme as ThemeColor);
+    if (savedProgress) setDailyProgress(JSON.parse(savedProgress));
     
     setIsInitialized(true);
   }, []);
@@ -109,10 +118,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('math-game-settings', JSON.stringify(settings));
       localStorage.setItem('math-game-hearts', hearts.toString());
       localStorage.setItem('math-game-theme', themeColor);
+      localStorage.setItem('math_progress', JSON.stringify(dailyProgress));
       if (password) localStorage.setItem('math-game-password', password);
       if (childName) localStorage.setItem('math-game-child-name', childName);
     }
-  }, [coins, rewards, purchases, settings, hearts, password, childName, themeColor, isInitialized]);
+  }, [coins, rewards, purchases, settings, hearts, password, childName, themeColor, dailyProgress, isInitialized]);
 
   const addCoins = (amount: number) => setCoins(prev => prev + amount);
   const removeCoins = (amount: number) => setCoins(prev => prev - amount);
@@ -171,6 +181,14 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setThemeColorState(color);
   };
 
+  const recordCorrectAnswer = () => {
+    const today = new Date().toISOString().split('T')[0];
+    setDailyProgress(prev => ({
+      ...prev,
+      [today]: (prev[today] || 0) + 1
+    }));
+  };
+
   return (
     <GameContext.Provider value={{ 
       coins, 
@@ -181,6 +199,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
       password,
       childName,
       themeColor,
+      dailyProgress,
       addCoins, 
       removeCoins, 
       addReward, 
@@ -192,7 +211,8 @@ export function GameProvider({ children }: { children: ReactNode }) {
       togglePurchaseStatus,
       setPassword,
       setChildName,
-      setThemeColor
+      setThemeColor,
+      recordCorrectAnswer
     }}>
       {children}
     </GameContext.Provider>
