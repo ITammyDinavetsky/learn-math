@@ -219,21 +219,21 @@ export default function MathGame() {
         >
           <div className="text-8xl mb-6">👋✨</div>
           <h1 className="text-4xl font-black text-purple-600 mb-4 font-bubblegum">ברוכים הבאים!</h1>
-          <p className="text-xl text-purple-400 mb-8 font-bold">הורים, בואו נגדיר את החשבון שלכם:</p>
+          <p className="text-xl text-purple-900 mb-8 font-black">הורים, בואו נגדיר את החשבון שלכם:</p>
           <form onSubmit={handleSetupPassword} className="flex flex-col gap-6">
             <div className="space-y-4">
               <div className="text-right">
-                <label className="block text-purple-600 font-bold mb-2 px-2">שם הילדה:</label>
+                <label className="block text-purple-900 font-black mb-2 px-2">שם הילדה:</label>
                 <input
                   type="text"
                   value={setupName}
                   onChange={(e) => setSetupName(e.target.value)}
                   placeholder="למשל: נועה"
-                  className="w-full p-4 rounded-2xl border-4 border-purple-100 focus:border-purple-400 outline-none text-center text-2xl"
+                  className="w-full p-4 rounded-2xl border-4 border-purple-200 focus:border-purple-500 outline-none text-center text-2xl font-bold placeholder:text-gray-500 text-black"
                 />
               </div>
               <div className="text-right">
-                <label className="block text-purple-600 font-bold mb-2 px-2">קוד סודי להורים (4 ספרות):</label>
+                <label className="block text-purple-900 font-black mb-2 px-2">קוד סודי להורים (4 ספרות):</label>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -242,7 +242,7 @@ export default function MathGame() {
                   value={setupPassword}
                   onChange={(e) => setSetupPassword(e.target.value)}
                   placeholder="____"
-                  className="w-full p-4 rounded-2xl border-4 border-purple-100 focus:border-purple-400 outline-none text-center text-3xl font-bubblegum tracking-[0.5rem]"
+                  className="w-full p-4 rounded-2xl border-4 border-purple-200 focus:border-purple-500 outline-none text-center text-3xl font-bubblegum tracking-[0.5rem] placeholder:text-gray-500 text-black"
                 />
               </div>
               {setupError && <p className="text-red-500 mt-2 font-bold">{setupError}</p>}
@@ -548,9 +548,9 @@ export default function MathGame() {
               <motion.div
                 key={i}
                 initial={false}
-                animate={{ scale: i < hearts ? 1.2 : 0.6, opacity: i < hearts ? 1 : 0.3 }}
+                animate={{ scale: i < hearts ? 1.2 : 0.6, opacity: i < hearts ? 1 : 0.6 }}
               >
-                <Heart className={`w-8 h-8 ${i < hearts ? 'text-red-500 fill-red-500' : 'text-gray-300'}`} />
+                <Heart className={`w-8 h-8 ${i < hearts ? 'text-red-500 fill-red-500' : 'text-gray-500'}`} />
               </motion.div>
             ))}
           </div>
@@ -558,18 +558,18 @@ export default function MathGame() {
 
         <div className="flex items-center gap-4">
           {/* Daily Goal Display */}
-          <div className="flex items-center gap-3 bg-blue-50 px-4 py-2 rounded-full border-2 border-blue-200 group relative">
-            <CheckCircle2 className="w-8 h-8 text-blue-500" />
-            <span className="font-bold text-2xl text-blue-700">{solvedToday}/{DAILY_GOAL}</span>
+          <div className="flex items-center gap-3 bg-blue-100 px-4 py-2 rounded-full border-2 border-blue-400 group relative">
+            <CheckCircle2 className="w-8 h-8 text-blue-700" />
+            <span className="font-black text-2xl text-blue-900">{solvedToday}/{DAILY_GOAL}</span>
           </div>
 
-          <div ref={coinCounterRef} className="flex items-center gap-3 bg-yellow-100 px-6 py-2.5 rounded-full border-2 border-yellow-400 bubble-shadow-yellow">
+          <div ref={coinCounterRef} className="flex items-center gap-3 bg-yellow-100 px-6 py-2.5 rounded-full border-2 border-yellow-500 bubble-shadow-yellow">
             <span className="text-4xl">💰</span>
-            <span className="text-3xl font-bold text-yellow-700">{coins}</span>
+            <span className="text-3xl font-black text-yellow-900">{coins}</span>
           </div>
           
           <Link href="/parent">
-            <motion.div whileHover={{ rotate: 90 }} className="text-gray-300 hover:text-purple-400 transition-colors p-2">
+            <motion.div whileHover={{ rotate: 90 }} className="text-gray-600 hover:text-purple-600 transition-colors p-2">
               <Settings size={32} />
             </motion.div>
           </Link>
@@ -579,15 +579,24 @@ export default function MathGame() {
       {/* Combo Progress Bar */}
       <div className="w-full max-w-2xl px-4">
         <div className="flex justify-between items-center mb-1 px-2">
-          <span className="text-sm font-bold text-purple-400">בונוס קומבו! 🎁</span>
-          <span className="text-sm font-bold text-purple-400">{combo}/5</span>
+          <span className="text-sm font-black text-purple-900">בונוס קומבו! 🎁</span>
+          <span className="text-sm font-black text-purple-900">{combo}/5</span>
         </div>
-        <div className="h-4 bg-purple-100 rounded-full overflow-hidden border-2 border-purple-200">
+        <div className="h-6 bg-purple-200 rounded-full overflow-hidden border-2 border-purple-400 relative">
           <motion.div 
-            className="h-full bg-gradient-to-r from-pink-400 to-purple-500"
+            className={`h-full ${combo === 5 ? 'bg-gradient-to-r from-yellow-500 via-orange-600 to-yellow-500 animate-pulse' : 'bg-gradient-to-r from-pink-500 to-purple-600'}`}
             initial={{ width: 0 }}
             animate={{ width: `${(combo / 5) * 100}%` }}
+            transition={{ type: "spring", stiffness: 100, damping: 20 }}
           />
+          {combo === 5 && (
+            <motion.div
+              initial={{ x: '-100%' }}
+              animate={{ x: '200%' }}
+              transition={{ repeat: Infinity, duration: 1.5, ease: "linear" }}
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent w-1/2 skew-x-12"
+            />
+          )}
         </div>
       </div>
 
@@ -618,7 +627,7 @@ export default function MathGame() {
               </BubbleBlock>
             </>
           ) : (
-            <div className="text-3xl animate-pulse text-purple-400 font-bold">מכין תרגיל חדש...</div>
+            <div className="text-3xl animate-pulse text-purple-900 font-black">מכין תרגיל חדש...</div>
           )}
         </div>
 
@@ -629,9 +638,9 @@ export default function MathGame() {
               initial={{ y: 20, opacity: 0, scale: 0.5 }}
               animate={{ y: 0, opacity: 1, scale: 1 }}
               exit={{ y: -20, opacity: 0, scale: 0.5 }}
-              className={`text-2xl md:text-4xl font-bold text-center ${
-                feedback.type === 'success' ? 'text-green-500' : 
-                feedback.type === 'gameover' ? 'text-red-600 animate-bounce' : 'text-red-500'
+              className={`text-2xl md:text-4xl font-black text-center ${
+                feedback.type === 'success' ? 'text-green-600' : 
+                feedback.type === 'gameover' ? 'text-red-700 animate-bounce' : 'text-red-600'
               } drop-shadow-sm`}
             >
               {feedback.message}
@@ -650,8 +659,8 @@ export default function MathGame() {
               disabled={feedback?.type === 'success'}
               className={`text-5xl font-bubblegum py-8 rounded-[2.5rem] transition-all border-b-8 bubble-shadow-pink ${
                 feedback?.type === 'success' && option === currentExercise?.result
-                  ? 'bg-green-100 text-green-600 border-green-300'
-                  : 'bg-pink-100 text-pink-600 border-pink-300'
+                  ? 'bg-green-100 text-green-700 border-green-400'
+                  : 'bg-pink-100 text-pink-700 border-pink-400'
               }`}
             >
               {option}
@@ -661,12 +670,12 @@ export default function MathGame() {
       </section>
 
       {/* Reward Shop */}
-      <section className="w-full max-w-5xl bg-white/50 backdrop-blur-sm rounded-[3rem] p-8 md:p-12 border-4 border-dashed border-purple-200">
-        <h2 className="text-4xl font-bold text-purple-600 mb-8 text-center">חנות המתנות 🎁</h2>
+      <section className="w-full max-w-5xl bg-white/50 backdrop-blur-sm rounded-[3rem] p-8 md:p-12 border-4 border-dashed border-purple-300">
+        <h2 className="text-4xl font-black text-purple-900 mb-8 text-center">חנות המתנות 🎁</h2>
         {rewards.length === 0 ? (
           <div className="text-center py-12 px-6">
             <div className="text-6xl mb-4">🧸✨</div>
-            <p className="text-2xl font-bold text-purple-400">אמא ואבא עוד לא הוסיפו הפתעות, כדאי לבקש מהם!</p>
+            <p className="text-2xl font-black text-purple-900">אמא ואבא עוד לא הוסיפו הפתעות, כדאי לבקש מהם!</p>
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-6">
@@ -674,21 +683,21 @@ export default function MathGame() {
               <motion.div 
                 key={reward.id}
                 whileHover={{ y: -5 }}
-                className={`bg-white p-6 rounded-[2rem] shadow-xl flex flex-col items-center gap-4 transition-all relative`}
+                className={`bg-white p-6 rounded-[2rem] shadow-xl flex flex-col items-center gap-4 transition-all relative border-2 border-purple-50`}
               >
                 <div className="text-6xl">{reward.icon}</div>
-                <div className="font-bold text-gray-700 text-lg text-center">{reward.name}</div>
-                <div className="flex items-center gap-1 text-yellow-600 font-bold text-xl">
+                <div className="font-black text-black text-lg text-center">{reward.name}</div>
+                <div className="flex items-center gap-1 text-yellow-700 font-black text-xl">
                   <span>{reward.price}</span>
                   <span>💰</span>
                 </div>
                 <button
                   onClick={() => buyReward(reward)}
                   disabled={coins < reward.price}
-                  className={`w-full py-3 rounded-2xl font-bold text-lg transition-all ${
+                  className={`w-full py-3 rounded-2xl font-black text-lg transition-all ${
                     coins >= reward.price
-                      ? 'bg-green-400 hover:bg-green-500 text-white shadow-[0_4px_0_#16a34a] active:translate-y-1 active:shadow-none'
-                      : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                      ? 'bg-green-500 hover:bg-green-600 text-white shadow-[0_4px_0_#15803d] active:translate-y-1 active:shadow-none'
+                      : 'bg-gray-200 text-gray-600 cursor-not-allowed'
                   }`}
                 >
                   קנייה
@@ -705,7 +714,7 @@ export default function MathGame() {
           <motion.h2 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="text-3xl font-bold text-pink-500 mb-6 text-center"
+            className="text-3xl font-black text-pink-600 mb-6 text-center"
           >
             האוסף המקסים שלי ✨
           </motion.h2>
@@ -717,7 +726,7 @@ export default function MathGame() {
                     key={purchase.id}
                     initial={{ scale: 0, rotate: -45 }}
                     animate={{ scale: 1, rotate: 0 }}
-                    className="text-5xl bg-white p-4 rounded-full shadow-lg border-4 border-pink-100 flex items-center justify-center w-20 h-20"
+                    className="text-5xl bg-white p-4 rounded-full shadow-lg border-4 border-pink-200 flex items-center justify-center w-20 h-20"
                   >
                     {purchase.rewardIcon}
                   </motion.div>
@@ -729,9 +738,9 @@ export default function MathGame() {
       )}
 
       {/* Hidden Parent Link */}
-      <div className="mt-auto pt-8 opacity-5 hover:opacity-100 transition-opacity">
+      <div className="mt-auto pt-8 opacity-10 hover:opacity-100 transition-opacity">
         <Link href="/parent">
-          <div className="p-4 cursor-pointer text-gray-400">
+          <div className="p-4 cursor-pointer text-gray-800">
             <Lock size={16} />
           </div>
         </Link>
