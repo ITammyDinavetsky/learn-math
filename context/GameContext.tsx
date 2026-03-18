@@ -19,10 +19,12 @@ export interface Purchase {
 }
 
 export interface ParentSettings {
-  operators: ('+' | '-')[];
+  operators: ('+' | '-' | '*' | '/')[];
   minNumber: number;
   maxNumber: number;
 }
+
+export type ThemeColor = 'white' | 'pink' | 'blue' | 'yellow';
 
 interface GameContextType {
   coins: number;
@@ -32,9 +34,11 @@ interface GameContextType {
   hearts: number;
   password: string | null;
   childName: string | null;
+  themeColor: ThemeColor;
   addCoins: (amount: number) => void;
   removeCoins: (amount: number) => void;
   addReward: (reward: Omit<Reward, 'id'>) => void;
+  updateReward: (id: string, reward: Omit<Reward, 'id'>) => void;
   deleteReward: (id: string) => void;
   makePurchase: (reward: Reward) => void;
   updateSettings: (settings: ParentSettings) => void;
@@ -42,12 +46,13 @@ interface GameContextType {
   togglePurchaseStatus: (id: string) => void;
   setPassword: (password: string) => void;
   setChildName: (name: string) => void;
+  setThemeColor: (color: ThemeColor) => void;
 }
 
 const DEFAULT_SETTINGS: ParentSettings = {
   operators: ['+'],
   minNumber: 1,
-  maxNumber: 100,
+  maxNumber: 20,
 };
 
 const DEFAULT_REWARDS: Reward[] = [
@@ -69,6 +74,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const [hearts, setHeartsState] = useState(3);
   const [password, setPasswordState] = useState<string | null>(null);
   const [childName, setChildNameState] = useState<string | null>(null);
+  const [themeColor, setThemeColorState] = useState<ThemeColor>('white');
   const [isInitialized, setIsInitialized] = useState(false);
 
   // Load from localStorage on mount
@@ -80,6 +86,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     const savedHearts = localStorage.getItem('math-game-hearts');
     const savedPassword = localStorage.getItem('math-game-password');
     const savedChildName = localStorage.getItem('math-game-child-name');
+    const savedTheme = localStorage.getItem('math-game-theme');
 
     if (savedCoins) setCoins(Number(savedCoins));
     if (savedRewards) setRewards(JSON.parse(savedRewards));
@@ -88,6 +95,7 @@ export function GameProvider({ children }: { children: ReactNode }) {
     if (savedHearts) setHeartsState(Number(savedHearts));
     if (savedPassword) setPasswordState(savedPassword);
     if (savedChildName) setChildNameState(savedChildName);
+    if (savedTheme) setThemeColorState(savedTheme as ThemeColor);
     
     setIsInitialized(true);
   }, []);
@@ -100,10 +108,11 @@ export function GameProvider({ children }: { children: ReactNode }) {
       localStorage.setItem('math-game-purchases', JSON.stringify(purchases));
       localStorage.setItem('math-game-settings', JSON.stringify(settings));
       localStorage.setItem('math-game-hearts', hearts.toString());
+      localStorage.setItem('math-game-theme', themeColor);
       if (password) localStorage.setItem('math-game-password', password);
       if (childName) localStorage.setItem('math-game-child-name', childName);
     }
-  }, [coins, rewards, purchases, settings, hearts, password, childName, isInitialized]);
+  }, [coins, rewards, purchases, settings, hearts, password, childName, themeColor, isInitialized]);
 
   const addCoins = (amount: number) => setCoins(prev => prev + amount);
   const removeCoins = (amount: number) => setCoins(prev => prev - amount);
@@ -111,6 +120,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
   const addReward = (reward: Omit<Reward, 'id'>) => {
     const newReward = { ...reward, id: Date.now().toString() };
     setRewards(prev => [...prev, newReward]);
+  };
+
+  const updateReward = (id: string, updatedReward: Omit<Reward, 'id'>) => {
+    setRewards(prev => prev.map(r => r.id === id ? { ...updatedReward, id } : r));
   };
 
   const deleteReward = (id: string) => {
@@ -154,6 +167,10 @@ export function GameProvider({ children }: { children: ReactNode }) {
     setChildNameState(newName);
   };
 
+  const setThemeColor = (color: ThemeColor) => {
+    setThemeColorState(color);
+  };
+
   return (
     <GameContext.Provider value={{ 
       coins, 
@@ -163,16 +180,19 @@ export function GameProvider({ children }: { children: ReactNode }) {
       hearts,
       password,
       childName,
+      themeColor,
       addCoins, 
       removeCoins, 
       addReward, 
+      updateReward,
       deleteReward, 
       makePurchase,
       updateSettings,
       setHearts,
       togglePurchaseStatus,
       setPassword,
-      setChildName
+      setChildName,
+      setThemeColor
     }}>
       {children}
     </GameContext.Provider>

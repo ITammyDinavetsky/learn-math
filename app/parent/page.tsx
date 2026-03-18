@@ -7,7 +7,7 @@ import Link from 'next/link';
 import { ArrowRight, Plus, Trash2, History, Coins, Package, Settings as SettingsIcon, Check, Shield } from 'lucide-react';
 
 export default function ParentDashboard() {
-  const { coins, rewards, purchases, settings, password, childName, addReward, deleteReward, updateSettings, togglePurchaseStatus, setPassword, setChildName } = useGame();
+  const { coins, rewards, purchases, settings, password, childName, addReward, updateReward, deleteReward, updateSettings, togglePurchaseStatus, setPassword, setChildName, addCoins, removeCoins } = useGame();
   const [passwordInput, setPasswordInput] = useState('');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [error, setError] = useState('');
@@ -15,6 +15,10 @@ export default function ParentDashboard() {
   const [newName, setNewName] = useState('');
   const [newPrice, setNewPrice] = useState('');
   const [newIcon, setNewIcon] = useState('');
+  const [editingRewardId, setEditingRewardId] = useState<string | null>(null);
+
+  // Manual coin adjustment state
+  const [coinAdjustmentAmount, setCoinAdjustmentAmount] = useState<string>('');
 
   // Local settings state
   const [localSettings, setLocalSettings] = useState(settings);
@@ -63,7 +67,7 @@ export default function ParentDashboard() {
     alert('ההגדרות נשמרו בהצלחה!');
   };
 
-  const toggleOperator = (op: '+' | '-') => {
+  const toggleOperator = (op: '+' | '-' | '*' | '/') => {
     setLocalSettings(prev => ({
       ...prev,
       operators: prev.operators.includes(op)
@@ -72,18 +76,40 @@ export default function ParentDashboard() {
     }));
   };
 
-  const handleAddReward = (e: React.FormEvent) => {
+  const handleRewardSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (newName && newPrice && newIcon) {
-      addReward({
-        name: newName,
-        price: Number(newPrice),
-        icon: newIcon,
-      });
+      if (editingRewardId) {
+        updateReward(editingRewardId, { name: newName, price: Number(newPrice), icon: newIcon });
+        setEditingRewardId(null);
+      } else {
+        addReward({ name: newName, price: Number(newPrice), icon: newIcon });
+      }
       setNewName('');
       setNewPrice('');
       setNewIcon('');
     }
+  };
+
+  const startEditing = (reward: any) => {
+    setEditingRewardId(reward.id);
+    setNewName(reward.name);
+    setNewPrice(reward.price.toString());
+    setNewIcon(reward.icon);
+  };
+
+  const handleCoinAdjustment = (type: 'add' | 'remove') => {
+    const amount = Number(coinAdjustmentAmount);
+    if (isNaN(amount) || amount <= 0) {
+      alert('נא להזין סכום תקין');
+      return;
+    }
+    if (type === 'add') {
+      addCoins(amount);
+    } else {
+      removeCoins(amount);
+    }
+    setCoinAdjustmentAmount('');
   };
 
   if (!isAuthenticated) {
@@ -169,21 +195,21 @@ export default function ParentDashboard() {
                 <div>
                   <label className="block text-gray-700 font-bold mb-3">פעולות חשבון:</label>
                   <div className="flex gap-4">
-                    {(['+', '-'] as const).map(op => (
-                      <button
-                        key={op}
-                        onClick={() => toggleOperator(op)}
-                        className={`flex-1 py-4 rounded-2xl border-2 transition-all flex items-center justify-center gap-2 text-2xl font-bold ${
-                          localSettings.operators.includes(op)
-                            ? 'bg-yellow-100 border-yellow-400 text-yellow-700 shadow-inner'
-                            : 'bg-gray-50 border-gray-200 text-gray-400'
-                        }`}
-                      >
-                        {op}
-                        {localSettings.operators.includes(op) && <Check size={20} />}
-                      </button>
-                    ))}
-                  </div>
+                  {(['+', '-', '*', '/'] as const).map(op => (
+                    <button
+                      key={op}
+                      onClick={() => toggleOperator(op)}
+                      className={`flex-1 py-4 rounded-2xl border-2 transition-all flex items-center justify-center gap-2 text-2xl font-bold ${
+                        localSettings.operators.includes(op)
+                          ? 'bg-yellow-100 border-yellow-400 text-yellow-700 shadow-inner'
+                          : 'bg-gray-50 border-gray-200 text-gray-400'
+                      }`}
+                    >
+                      {op === '*' ? '×' : op === '/' ? '÷' : op}
+                      {localSettings.operators.includes(op) && <Check size={20} />}
+                    </button>
+                  ))}
+                </div>
                 </div>
 
                 {/* Number Range */}
@@ -253,7 +279,145 @@ export default function ParentDashboard() {
               </form>
             </section>
 
-            {/* Purchase History */}
+            {/* Manual Coin Adjustment Section */}
+            <section className="bg-white p-8 rounded-[2rem] shadow-xl border-4 border-yellow-200 mt-6">
+              <div className="flex items-center justify-between mb-6 text-yellow-700">
+                <div className="flex items-center gap-2">
+                  <Coins size={28} />
+                  <h2 className="text-2xl font-bold">עדכון מטבעות ידני</h2>
+                </div>
+                <div className="bg-yellow-100 px-4 py-2 rounded-2xl border-2 border-yellow-400 text-center">
+                  <div className="text-xs font-bold text-yellow-600">יתרה נוכחית:</div>
+                  <div className="text-2xl font-black text-yellow-700">💰 {coins}</div>
+                </div>
+              </div>
+              <div className="flex flex-col gap-4">
+                <input
+                  type="number"
+                  placeholder="כמות מטבעות"
+                  value={coinAdjustmentAmount}
+                  onChange={(e) => setCoinAdjustmentAmount(e.target.value)}
+                  className="p-4 rounded-xl border-2 border-yellow-50 focus:border-yellow-300 outline-none text-center font-bold text-xl"
+                />
+                <div className="flex gap-4">
+                  <button
+                    onClick={() => handleCoinAdjustment('add')}
+                    className="flex-1 bg-green-400 hover:bg-green-500 text-white font-bold py-4 rounded-xl shadow-md transition-all active:scale-95 text-xl"
+                  >
+                    + הוסף
+                  </button>
+                  <button
+                    onClick={() => handleCoinAdjustment('remove')}
+                    className="flex-1 bg-red-400 hover:bg-red-500 text-white font-bold py-4 rounded-xl shadow-md transition-all active:scale-95 text-xl"
+                  >
+                    - הפחת
+                  </button>
+                </div>
+              </div>
+            </section>
+          </div>
+
+          {/* Left Column: Rewards Management */}
+          <div className="flex flex-col gap-6">
+            {/* Add Reward Form */}
+            <section className="bg-white p-8 rounded-[2rem] shadow-xl border-4 border-pink-100">
+              <div className="flex items-center gap-2 mb-6 text-pink-500">
+                <Plus size={28} />
+                <h2 className="text-2xl font-bold">
+                  {editingRewardId ? 'עריכת פרס' : 'הוספת פרס חדש'}
+                </h2>
+              </div>
+              <form onSubmit={handleRewardSubmit} className="flex flex-col gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <input
+                    type="text"
+                    placeholder="שם הפרס"
+                    value={newName}
+                    onChange={(e) => setNewName(e.target.value)}
+                    className="p-4 rounded-xl border-2 border-purple-50 focus:border-purple-300 outline-none"
+                    required
+                  />
+                  <input
+                    type="number"
+                    placeholder="מחיר"
+                    value={newPrice}
+                    onChange={(e) => setNewPrice(e.target.value)}
+                    className="p-4 rounded-xl border-2 border-purple-50 focus:border-purple-300 outline-none"
+                    required
+                  />
+                </div>
+                <input
+                  type="text"
+                  placeholder="אייקון (אמוג'י)"
+                  value={newIcon}
+                  onChange={(e) => setNewIcon(e.target.value)}
+                  className="p-4 rounded-xl border-2 border-purple-50 focus:border-purple-300 outline-none text-2xl text-center"
+                  required
+                />
+                <div className="flex gap-4">
+                  <button
+                    type="submit"
+                    className={`flex-1 ${editingRewardId ? 'bg-blue-400 hover:bg-blue-500' : 'bg-green-400 hover:bg-green-500'} text-white font-bold py-4 rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2`}
+                  >
+                    {editingRewardId ? <Check /> : <Plus />} 
+                    {editingRewardId ? 'עדכן פרס' : 'הוסף לחנות'}
+                  </button>
+                  {editingRewardId && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingRewardId(null);
+                        setNewName('');
+                        setNewPrice('');
+                        setNewIcon('');
+                      }}
+                      className="px-6 bg-gray-200 hover:bg-gray-300 text-gray-600 font-bold py-4 rounded-xl transition-all active:scale-95"
+                    >
+                      ביטול
+                    </button>
+                  )}
+                </div>
+              </form>
+            </section>
+
+            {/* Current Rewards List */}
+            <section className="bg-white p-8 rounded-[2rem] shadow-xl border-4 border-purple-100">
+              <div className="flex items-center gap-2 mb-6 text-purple-500">
+                <Package size={28} />
+                <h2 className="text-2xl font-bold">פרסים בחנות</h2>
+              </div>
+              <div className="space-y-3 max-h-[400px] overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-purple-100">
+                {rewards.map((reward) => (
+                  <div key={reward.id} className="flex items-center justify-between p-4 bg-purple-50 rounded-2xl border-2 border-purple-100">
+                    <div className="flex items-center gap-4">
+                      <span className="text-3xl">{reward.icon}</span>
+                      <div>
+                        <div className="font-bold text-purple-700">{reward.name}</div>
+                        <div className="text-sm text-purple-400">{reward.price} מטבעות</div>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <button 
+                        onClick={() => startEditing(reward)}
+                        className="p-2 text-blue-400 hover:bg-blue-50 rounded-full transition-colors"
+                        title="ערוך"
+                      >
+                        <SettingsIcon size={20} />
+                      </button>
+                      <button 
+                        onClick={() => deleteReward(reward.id)}
+                        className="p-2 text-red-400 hover:bg-red-50 rounded-full transition-colors"
+                        title="מחק"
+                      >
+                        <Trash2 size={20} />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+
+            {/* Purchase History (Moved from Right Column to Left Column under Rewards List) */}
             <section className="bg-white p-8 rounded-[2rem] shadow-xl border-4 border-blue-100">
               <div className="flex items-center gap-2 mb-6 text-blue-500">
                 <History size={28} />
@@ -301,78 +465,6 @@ export default function ParentDashboard() {
                     </div>
                   ))
                 )}
-              </div>
-            </section>
-          </div>
-
-          {/* Left Column: Rewards Management */}
-          <div className="flex flex-col gap-6">
-            {/* Add Reward Form */}
-            <section className="bg-white p-8 rounded-[2rem] shadow-xl border-4 border-pink-100">
-              <div className="flex items-center gap-2 mb-6 text-pink-500">
-                <Plus size={28} />
-                <h2 className="text-2xl font-bold">הוספת פרס חדש</h2>
-              </div>
-              <form onSubmit={handleAddReward} className="flex flex-col gap-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <input
-                    type="text"
-                    placeholder="שם הפרס"
-                    value={newName}
-                    onChange={(e) => setNewName(e.target.value)}
-                    className="p-4 rounded-xl border-2 border-purple-50 focus:border-purple-300 outline-none"
-                    required
-                  />
-                  <input
-                    type="number"
-                    placeholder="מחיר"
-                    value={newPrice}
-                    onChange={(e) => setNewPrice(e.target.value)}
-                    className="p-4 rounded-xl border-2 border-purple-50 focus:border-purple-300 outline-none"
-                    required
-                  />
-                </div>
-                <input
-                  type="text"
-                  placeholder="אייקון (אמוג'י)"
-                  value={newIcon}
-                  onChange={(e) => setNewIcon(e.target.value)}
-                  className="p-4 rounded-xl border-2 border-purple-50 focus:border-purple-300 outline-none text-2xl text-center"
-                  required
-                />
-                <button
-                  type="submit"
-                  className="bg-green-400 hover:bg-green-500 text-white font-bold py-4 rounded-xl transition-all shadow-md active:scale-95 flex items-center justify-center gap-2"
-                >
-                  <Plus /> הוסף לחנות
-                </button>
-              </form>
-            </section>
-
-            {/* Current Rewards List */}
-            <section className="bg-white p-8 rounded-[2rem] shadow-xl border-4 border-purple-100">
-              <div className="flex items-center gap-2 mb-6 text-purple-500">
-                <Package size={28} />
-                <h2 className="text-2xl font-bold">פרסים בחנות</h2>
-              </div>
-              <div className="space-y-3 max-h-[400px] overflow-y-auto p-2 scrollbar-thin scrollbar-thumb-purple-100">
-                {rewards.map((reward) => (
-                  <div key={reward.id} className="flex items-center justify-between p-4 bg-purple-50 rounded-2xl border-2 border-purple-100">
-                    <div className="flex items-center gap-4">
-                      <span className="text-3xl">{reward.icon}</span>
-                      <div>
-                        <div className="font-bold text-purple-700">{reward.name}</div>
-                        <div className="text-sm text-purple-400">{reward.price} מטבעות</div>
-                      </div>
-                    </div>
-                    <button 
-                      onClick={() => deleteReward(reward.id)}
-                      className="p-2 text-red-400 hover:bg-red-50 rounded-full transition-colors"
-                    >
-                      <Trash2 size={20} />
-                    </button>
-                  </div>
-                ))}
               </div>
             </section>
           </div>
